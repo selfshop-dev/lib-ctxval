@@ -1,0 +1,146 @@
+version: "2"
+
+run: # https://golangci-lint.run/docs/configuration/file/#run-configuration
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters: # https://golangci-lint.run/docs/configuration/file/#linters-configuration
+  default: none
+  enable:
+    # ── Bugs & correctness ────────────────────────────────────────────────────
+    - govet           # https://golangci-lint.run/docs/linters/configuration/#govet
+    - noctx           # https://golangci-lint.run/docs/linters/configuration/#noctx
+    - staticcheck     # https://golangci-lint.run/docs/linters/configuration/#staticcheck
+    - ineffassign     # https://golangci-lint.run/docs/linters/configuration/#ineffassign
+    - copyloopvar     # https://golangci-lint.run/docs/linters/configuration/#copyloopvar
+    - unused          # https://golangci-lint.run/docs/linters/configuration/#unused
+    - nilerr          # https://golangci-lint.run/docs/linters/configuration/#nilerr
+    - nilnil          # https://golangci-lint.run/docs/linters/configuration/#nilnil
+    - errorlint       # https://golangci-lint.run/docs/linters/configuration/#errorlint
+    - unconvert       # https://golangci-lint.run/docs/linters/configuration/#unconvert
+    - unparam         # https://golangci-lint.run/docs/linters/configuration/#unparam
+    - wastedassign    # https://golangci-lint.run/docs/linters/configuration/#wastedassign
+    - nilnesserr      # https://golangci-lint.run/docs/linters/configuration/#nilnesserr
+    - fatcontext      # https://golangci-lint.run/docs/linters/configuration/#fatcontext
+    - errcheck        # https://golangci-lint.run/docs/linters/configuration/#errcheck
+    - durationcheck   # https://golangci-lint.run/docs/linters/configuration/#durationcheck
+    - forcetypeassert # https://golangci-lint.run/docs/linters/configuration/#forcetypeassert
+
+    # ── Security ─────────────────────────────────────────────────────────────
+    - gosec   # https://golangci-lint.run/docs/linters/configuration/#gosec
+    - bidichk # https://golangci-lint.run/docs/linters/configuration/#bidichk
+
+    # ── Style ────────────────────────────────────────────────────────────────
+    - misspell   # https://golangci-lint.run/docs/linters/configuration/#misspell
+    - gocritic   # https://golangci-lint.run/docs/linters/configuration/#gocritic
+    - nolintlint # https://golangci-lint.run/docs/linters/configuration/#nolintlint
+    - revive     # https://golangci-lint.run/docs/linters/configuration/#revive
+    - modernize  # https://golangci-lint.run/docs/linters/configuration/#modernize
+    - gocheckcompilerdirectives # https://golangci-lint.run/docs/linters/configuration/#gocheckcompilerdirectives
+
+    # ── Complexity ───────────────────────────────────────────────────────────
+    - funlen # https://golangci-lint.run/docs/linters/configuration/#funlen
+    - cyclop # https://golangci-lint.run/docs/linters/configuration/#cyclop
+
+    # ── Testing ──────────────────────────────────────────────────────────────
+    - testifylint      # https://golangci-lint.run/docs/linters/configuration/#testifylint
+    - testableexamples # https://golangci-lint.run/docs/linters/configuration/#testableexamples
+    - paralleltest     # https://golangci-lint.run/docs/linters/configuration/#paralleltest
+    - thelper          # https://golangci-lint.run/docs/linters/configuration/#thelper
+    - usetesting       # https://golangci-lint.run/docs/linters/configuration/#usetesting
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+ 
+    govet:
+      enable-all: true
+ 
+    fatcontext:
+      check-struct-pointers: true
+ 
+    copyloopvar:
+      check-alias: true
+ 
+    gosec:
+      excludes:
+        - G103 # unsafe.Pointer — acceptable in low-level library code
+        - G204 # subprocess with variable
+        # TODO: Remove G304 if this repo handles user-controlled file paths.
+        - G304 # file inclusion via variable
+
+    revive:
+      # If at least one rule is listed, defaults are disabled.
+      # Run `GL_DEBUG=revive golangci-lint run --enable-only=revive` to inspect.
+      rules:
+        - name: exported
+        - name: error-return
+        - name: if-return
+        - name: var-naming
+        - name: increment-decrement
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: empty-block
+        - name: error-strings
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: unused-parameter
+        - name: superfluous-else
+        - name: unreachable-code
+        - name: redefines-builtin-id
+
+    gocritic:
+      # style tag excluded: too noisy across diverse codebases.
+      # performance tag excluded: add it in perf-sensitive repos.
+      enabled-tags:
+        - diagnostic
+ 
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+ 
+    perfsprint:
+      # Go 1.26 optimized fmt.Errorf to use errors.New internally.
+      errorf: false
+ 
+  exclusions:
+    presets:
+      - common-false-positives
+      - std-error-handling
+    paths:
+      - ".*_mock\\.go$"
+      - ".*/gen/.*"
+      - "\\.pb(\\.gw)?\\.go$"
+      - "\\.sql\\.go$"
+      - "\\.gen\\.go$"
+    rules:
+      - path: ".*_test\\.go$"
+        linters:
+          - gocritic
+          - errcheck
+ 
+      # fieldalignment in test files: anonymous structs in table-driven tests
+      # do not benefit from memory layout optimisation.
+      - path: ".*_test\\.go$"
+        linters:
+          - govet
+        text: "fieldalignment"
+
+issues: # https://golangci-lint.run/docs/configuration/file/#issues-configuration
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters: # https://golangci-lint.run/docs/configuration/file/#formatters-configuration
+  enable:
+    - gofmt     # https://golangci-lint.run/docs/formatters/configuration/#gofmt
+    - goimports # https://golangci-lint.run/docs/formatters/configuration/#goimports
+
+  settings:
+    goimports:
+      # A list of prefixes, which, if set, checks import paths
+      # with the given prefixes are grouped after 3rd-party packages.
+      local-prefixes:
+        - github.com/selfshop-dev
